@@ -9,9 +9,13 @@ const fs = require('node:fs');
 require('dotenv').config();
 
 const { db } = require('./db_adapter');
-const uploadsDir = path.join(__dirname, '..', 'uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+const uploadsDir = process.env.VERCEL ? path.join('/tmp', 'uploads') : path.join(__dirname, '..', 'uploads');
+try {
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+} catch (err) {
+  console.warn('Uploads directory creation warning:', err.message);
 }
 
 const app = express();
@@ -22,6 +26,10 @@ const JWT_SECRET = process.env.JWT_SECRET || 'SecretSuperSecurisePourCollectDeCa
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(uploadsDir));
+
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 
 // Multer Storage (§3.3, §7.3)
 const storage = multer.diskStorage({

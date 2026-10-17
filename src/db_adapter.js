@@ -1,15 +1,14 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
-const isCloud = !!process.env.DATABASE_URL;
+const DEFAULT_DB_URL = 'postgresql://neondb_owner:npg_cGJePTam71kp@ep-patient-dawn-ba1kp1oh-pooler.c-8.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
+const connectionString = process.env.DATABASE_URL || DEFAULT_DB_URL;
+const isCloud = true;
 
-let pool = null;
-if (isCloud) {
-  pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-  });
-}
+const pool = new Pool({
+  connectionString,
+  ssl: { rejectUnauthorized: false },
+});
 
 function convertSql(sql) {
   let idx = 1;
