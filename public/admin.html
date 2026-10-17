@@ -711,7 +711,8 @@
         const data = await res.json();
 
         if (!res.ok) throw new Error(data.error || 'Erreur connexion');
-        if (!data.roles || !data.roles.includes('administrateur')) {
+        const roles = data.user?.roles || data.roles || [];
+        if (!roles.includes('administrateur')) {
           throw new Error('Ce compte ne possède pas les droits administrateur');
         }
 
