@@ -1533,6 +1533,55 @@ app.get('/api/admin/users', authenticateToken, requireRole(['administrateur']), 
   }
 });
 
+app.post('/api/admin/create-admin', authenticateToken, requireRole(['administrateur']), async (req, res) => {
+  try {
+    const { username, email, password, display_name } = req.body;
+    if (!username || !email || !password) {
+      return res.status(400).json({ error: 'Nom d\'utilisateur, email et mot de passe requis.' });
+    }
+    if (password.length < 8) {
+      return res.status(400).json({ error: 'Le mot de passe doit comporter au moins 8 caractères.' });
+    }
+
+    const existing = await db.get('SELECT id FROM users WHERE email = ? OR username = ?', [email, username]);
+    if (existing) {
+      return res.status(400).json({ error: 'Un compte avec cet email ou nom d\'utilisateur existe déjà.' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUserId = uuidv4();
+    const avatarUrl = `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`;
+
+    await db.transaction(async (tx) => {
+      await tx.run(
+        'INSERT INTO users (id, email, password_hash, username, is_suspended) VALUES (?, ?, ?, ?, 0)',
+        [newUserId, email, hashedPassword, username]
+      );
+      await tx.run(
+        "INSERT INTO user_roles (id, user_id, role) VALUES (?, ?, 'administrateur')",
+        [uuidv4(), newUserId]
+      );
+      await tx.run(
+        'INSERT INTO profiles (id, user_id, display_name, avatar_url, bio, is_public) VALUES (?, ?, ?, ?, ?, 1)',
+        [uuidv4(), newUserId, display_name || username, avatarUrl, 'Compte Administrateur']
+      );
+    });
+
+    await logAudit(
+      req.user.id,
+      'CREATE_ADMIN',
+      'user',
+      newUserId,
+      `Création du compte administrateur: ${username} (${email})`
+    );
+
+    res.status(201).json({ message: 'Compte administrateur créé avec succès', id: newUserId });
+  } catch (err) {
+    console.error('Erreur création admin:', err);
+    res.status(500).json({ error: 'Erreur création administrateur.' });
+  }
+});
+
 app.post('/api/admin/users/:id/adjust-balance', authenticateToken, requireRole(['administrateur']), async (req, res) => {
   try {
     const { amount, justification } = req.body;

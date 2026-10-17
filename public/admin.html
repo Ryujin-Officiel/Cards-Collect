@@ -365,12 +365,12 @@
 
       <div class="form-group" style="text-align: left;">
         <label>Email Administrateur</label>
-        <input type="text" id="adminEmail" value="admin@collection-cartes.local">
+        <input type="email" id="adminEmail" placeholder="votre-email@exemple.com" required autocomplete="username">
       </div>
 
       <div class="form-group" style="text-align: left;">
         <label>Mot de passe</label>
-        <input type="password" id="adminPassword" value="AdminCartes2026!">
+        <input type="password" id="adminPassword" placeholder="••••••••••••" required autocomplete="current-password">
       </div>
 
       <button class="btn" onclick="loginAdmin()">Se Connecter au Cloud</button>
@@ -388,6 +388,7 @@
       <button class="nav-btn" onclick="switchTab('boosters')">🎁 Packs & Boosters</button>
       <button class="nav-btn" onclick="switchTab('quiz')">❓ Quiz & Questions</button>
       <button class="nav-btn" onclick="switchTab('collections')">📚 Collections</button>
+      <button class="nav-btn" onclick="switchTab('admins')">🛡️ Administrateurs</button>
     </nav>
     <div class="user-footer">
       <span style="color: var(--text-muted);" id="userDisplay">Non connecté</span>
@@ -630,6 +631,44 @@
         </div>
       </div>
     </div>
+
+    <!-- SECTION 5: ADMINISTRATEURS -->
+    <div id="tab-admins" class="tab-content" style="display: none;">
+      <div class="grid-2">
+        <div class="card">
+          <h2 class="card-title">🛡️ Ajouter un Nouvel Administrateur</h2>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px;">
+            Sécurité stricte (§2.3) : seul un administrateur authentifié peut octroyer des droits administratifs. Le mot de passe sera haché avec bcrypt.
+          </p>
+          <form id="adminForm" onsubmit="createAdminUser(event)">
+            <div class="form-group">
+              <label>Nom d'utilisateur</label>
+              <input type="text" id="newAdminUsername" placeholder="Ex: MaitreDuJeu" required minlength="3">
+            </div>
+            <div class="form-group">
+              <label>Adresse Email</label>
+              <input type="email" id="newAdminEmail" placeholder="admin2@domaine.com" required>
+            </div>
+            <div class="form-group">
+              <label>Nom d'affichage public</label>
+              <input type="text" id="newAdminDisplay" placeholder="Ex: Admin Sarah" required>
+            </div>
+            <div class="form-group">
+              <label>Mot de passe fort</label>
+              <input type="password" id="newAdminPassword" placeholder="Minimum 8 caractères" required minlength="8">
+            </div>
+            <button type="submit" class="btn">Créer le Compte Administrateur</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">👥 Comptes Administrateurs (<span id="adminsCount">0</span>)</h2>
+          <div class="items-list" id="adminsList">
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Chargement des administrateurs...</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 
   <div id="toast" class="toast">Action effectuée avec succès</div>
@@ -704,7 +743,8 @@
         cards: ['Gestion des Cartes', 'Ajoutez et configurez de nouvelles cartes à tirer dans les boosters'],
         boosters: ['Gestion des Packs & Boosters', 'Créez de nouveaux packs achetable par les joueurs avec leurs points'],
         quiz: ['Gestion des Quiz & Questions', 'Ajoutez des questions pour permettre aux joueurs de gagner des points'],
-        collections: ['Gestion des Collections', 'Créez des thèmes et séries de cartes']
+        collections: ['Gestion des Collections', 'Créez des thèmes et séries de cartes'],
+        admins: ['Gestion des Administrateurs', 'Créez et listez les comptes ayant les droits de gestion']
       };
       document.getElementById('pageTitle').innerText = titles[tab][0];
       document.getElementById('pageSubtitle').innerText = titles[tab][1];
@@ -728,6 +768,7 @@
       loadCards();
       loadBoosters();
       loadQuestions();
+      loadAdmins();
     }
 
     // Collections
@@ -931,6 +972,50 @@
         showToast('Question enregistrée avec succès !');
         document.getElementById('quizForm').reset();
         loadQuestions();
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    }
+
+    // Admins
+    async function loadAdmins() {
+      try {
+        const users = await apiFetch('/api/admin/users');
+        const admins = users.filter(u => u.role === 'administrateur');
+        document.getElementById('adminsCount').innerText = admins.length;
+        const container = document.getElementById('adminsList');
+        container.innerHTML = admins.map(a => `
+          <div class="item-row">
+            <div class="item-info">
+              <img src="${a.avatar_url || 'https://api.dicebear.com/7.x/bottts/svg?seed=' + a.username}" class="item-img" style="border-radius: 50%;">
+              <div>
+                <strong style="display: block;">${a.display_name || a.username} <span style="font-weight: normal; font-size: 0.8rem; color: var(--text-muted);">(@${a.username})</span></strong>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">${a.email}</span>
+              </div>
+            </div>
+            <span class="rarity-pill rarity-legendaire">Administrateur</span>
+          </div>
+        `).join('') || '<p style="color: var(--text-muted);">Aucun administrateur trouvé.</p>';
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function createAdminUser(e) {
+      e.preventDefault();
+      try {
+        const res = await apiFetch('/api/admin/create-admin', {
+          method: 'POST',
+          body: JSON.stringify({
+            username: document.getElementById('newAdminUsername').value.trim(),
+            email: document.getElementById('newAdminEmail').value.trim(),
+            display_name: document.getElementById('newAdminDisplay').value.trim(),
+            password: document.getElementById('newAdminPassword').value,
+          })
+        });
+        showToast('Compte administrateur créé avec succès !');
+        document.getElementById('adminForm').reset();
+        loadAdmins();
       } catch (err) {
         showToast(err.message, true);
       }
