@@ -447,7 +447,27 @@
                 <input type="number" id="cardNumber" value="1" min="1">
               </div>
             </div>
-            <div class="grid-2" style="gap: 12px; margin-bottom: 20px;">
+            <div class="grid-2" style="gap: 12px; margin-bottom: 16px;">
+              <div>
+                <label>Couleur du cadre personnalisé</label>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <input type="color" id="cardBorderColor" value="#E5A93C" style="width: 44px; height: 42px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-card); cursor: pointer; padding: 2px;">
+                  <input type="text" id="cardBorderColorText" value="#E5A93C" placeholder="#E5A93C" style="flex: 1;" oninput="document.getElementById('cardBorderColor').value = this.value">
+                </div>
+              </div>
+              <div>
+                <label>Finition spéciale</label>
+                <select id="cardSpecialFinish">
+                  <option value="standard">Standard (Classique)</option>
+                  <option value="foil_or">Foil Dorure Réfléchissante</option>
+                  <option value="prisme_holographique">Prisme Holographique</option>
+                  <option value="argent_brosse">Argent Brossé</option>
+                  <option value="glace_cosmique">Glace Cosmique</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid-2" style="gap: 12px; margin-bottom: 16px;">
               <div>
                 <label>Effet visuel</label>
                 <select id="cardEffect">
@@ -465,6 +485,21 @@
                 </select>
               </div>
             </div>
+
+            <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 20px;">
+              <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent); display: block; margin-bottom: 8px;">OPTIONS SECRÈTES & MYSTÈRE :</span>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin: 0; color: var(--text);">
+                  <input type="checkbox" id="cardIsSecret" style="width: 18px; height: 18px; accent-color: var(--accent);">
+                  <span><strong>Carte Secrète</strong> (Masquée dans l'album tant que non obtenue)</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin: 0; color: var(--text);">
+                  <input type="checkbox" id="cardIsHiddenRarity" style="width: 18px; height: 18px; accent-color: var(--accent);">
+                  <span><strong>Rareté Cachée</strong> (Affiche '???' au lieu de la rareté standard)</span>
+                </label>
+              </div>
+            </div>
+
             <button type="submit" class="btn">Publier la Carte dans la Base</button>
           </form>
         </div>
@@ -498,15 +533,46 @@
             </div>
             <div class="grid-2" style="gap: 12px; margin-bottom: 16px;">
               <div>
-                <label>Prix en points</label>
+                <label>Prix en points (Actuel)</label>
                 <input type="number" id="boosterPrice" value="150" min="10" required>
               </div>
+              <div>
+                <label>Prix d'origine (Option promo / barré)</label>
+                <input type="number" id="boosterOriginalPrice" placeholder="Ex: 250 (laisser vide si pas de promo)" min="10">
+              </div>
+            </div>
+
+            <div class="grid-2" style="gap: 12px; margin-bottom: 16px;">
               <div>
                 <label>Cartes par pack</label>
                 <input type="number" id="boosterCardsCount" value="5" min="1" max="15" required>
               </div>
+              <div>
+                <label>Animation d'ouverture</label>
+                <select id="boosterAnimation">
+                  <option value="classique">Classique (Déchirure standard)</option>
+                  <option value="cosmique">Cosmique (Particules d'étoiles)</option>
+                  <option value="flammes">Brasier (Flammes & Braises)</option>
+                  <option value="eclair">Électrique (Éclairs & Foudre)</option>
+                  <option value="neon">Néon Cyberpunk</option>
+                </select>
+              </div>
             </div>
-            <div class="form-group">
+
+            <div class="grid-2" style="gap: 12px; margin-bottom: 16px;">
+              <div>
+                <label>Limite d'achat / jour par joueur</label>
+                <input type="number" id="boosterDailyLimit" value="0" min="0" placeholder="0 = Illimité">
+                <span style="font-size: 0.75rem; color: var(--text-muted);">0 = Achat illimité</span>
+              </div>
+              <div>
+                <label>Disponible jusqu'au (Période temporaire)</label>
+                <input type="datetime-local" id="boosterAvailableUntil">
+                <span style="font-size: 0.75rem; color: var(--text-muted);">Laisser vide pour permanent</span>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 20px;">
               <label>Collection dédiée (optionnel)</label>
               <select id="boosterCollectionSelect">
                 <option value="">Toutes les collections (Tirage global)</option>
@@ -549,9 +615,16 @@
                 </select>
               </div>
             </div>
-            <div class="form-group">
-              <label>Points récompensés</label>
-              <input type="number" id="qPoints" value="15" min="5" required>
+            <div class="grid-2" style="gap: 12px; margin-bottom: 16px;">
+              <div>
+                <label>Points récompensés</label>
+                <input type="number" id="qPoints" value="15" min="5" required>
+              </div>
+              <div>
+                <label>Chronomètre (Temps imparti en secondes)</label>
+                <input type="number" id="qTimeLimit" value="20" min="5" max="180" placeholder="Ex: 15, 20, 30...">
+                <span style="font-size: 0.75rem; color: var(--text-muted);">Temps maximum pour répondre</span>
+              </div>
             </div>
 
             <label style="margin-bottom: 8px;">Propositions (Cochez la bonne réponse) :</label>
@@ -596,13 +669,20 @@
         <div class="card">
           <h2 class="card-title">📁 Nouvelle Collection</h2>
           <form id="collectionForm" onsubmit="createCollection(event)">
-            <div class="form-group">
-              <label>Nom de la Collection</label>
-              <input type="text" id="colName" placeholder="Ex: Guerriers Mythiques" required>
+            <div class="grid-2" style="gap: 12px; margin-bottom: 16px;">
+              <div>
+                <label>Nom de la Collection</label>
+                <input type="text" id="colName" placeholder="Ex: Guerriers Mythiques" required>
+              </div>
+              <div>
+                <label>Symbole / Icône (Émoji ou badge)</label>
+                <input type="text" id="colIcon" value="🎴" placeholder="Ex: 🐉, ⚔️, ⚡, 🌌">
+              </div>
             </div>
+
             <div class="form-group">
               <label>Description</label>
-              <textarea id="colDesc" rows="3" placeholder="Présentation de la collection..."></textarea>
+              <textarea id="colDesc" rows="2" placeholder="Présentation de la collection..."></textarea>
             </div>
             <div class="form-group">
               <label>Image de couverture</label>
@@ -612,6 +692,18 @@
               <label>Bannière (optionnel)</label>
               <input type="text" id="colBanner" placeholder="https://...">
             </div>
+
+            <div class="grid-2" style="gap: 12px; margin-bottom: 16px;">
+              <div>
+                <label>Récompense de complétion (Points)</label>
+                <input type="number" id="colReward" value="250" min="0" placeholder="Points offerts à 100%">
+              </div>
+              <div>
+                <label>Ordre d'affichage (Priorité)</label>
+                <input type="number" id="colOrder" value="1" min="0" placeholder="1 = En premier">
+              </div>
+            </div>
+
             <div class="form-group" style="margin-bottom: 20px;">
               <label>Statut</label>
               <select id="colStatus">
@@ -818,6 +910,9 @@
             cover_image_url: document.getElementById('colCover').value,
             banner_image_url: document.getElementById('colBanner').value,
             status: document.getElementById('colStatus').value,
+            completion_reward_points: Number(document.getElementById('colReward').value || 100),
+            display_order: Number(document.getElementById('colOrder').value || 0),
+            icon_symbol: document.getElementById('colIcon').value || '🎴',
           })
         });
         showToast('Collection créée avec succès !');
@@ -839,11 +934,11 @@
             <div class="item-info">
               <img src="${c.main_image_url}" class="item-img" onerror="this.src='https://placehold.co/44x58/222/fff?text=?'">
               <div>
-                <strong style="display: block;">${c.name}</strong>
-                <span style="font-size: 0.8rem; color: var(--text-muted);">${c.collection_name || 'Collection'} • #${c.card_number}</span>
+                <strong style="display: block;">${c.name} ${c.is_secret ? '🔒' : ''}</strong>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">${c.collection_name || 'Collection'} • #${c.card_number} • ${c.special_finish || 'standard'}</span>
               </div>
             </div>
-            <span class="rarity-pill rarity-${c.rarity.replace(' ', '-')}">${c.rarity}</span>
+            <span class="rarity-pill rarity-${c.rarity.replace(' ', '-')}">${c.is_hidden_rarity ? '???' : c.rarity}</span>
           </div>
         `).join('') || '<p style="color: var(--text-muted);">Aucune carte créée.</p>';
       } catch (err) {
@@ -865,6 +960,10 @@
             card_number: Number(document.getElementById('cardNumber').value),
             visual_effects: document.getElementById('cardEffect').value,
             status: document.getElementById('cardStatus').value,
+            border_color: document.getElementById('cardBorderColor').value,
+            special_finish: document.getElementById('cardSpecialFinish').value,
+            is_secret: document.getElementById('cardIsSecret').checked ? 1 : 0,
+            is_hidden_rarity: document.getElementById('cardIsHiddenRarity').checked ? 1 : 0,
           })
         });
         showToast('Carte créée et enregistrée dans le Cloud !');
@@ -887,11 +986,11 @@
             <div class="item-info">
               <img src="${b.illustration_url}" class="item-img">
               <div>
-                <strong style="display: block;">${b.name}</strong>
-                <span style="font-size: 0.8rem; color: var(--accent); font-weight: 700;">🪙 ${b.price_points} pts • ${b.cards_per_pack} cartes</span>
+                <strong style="display: block;">${b.name} ${b.original_price_points ? '<span style=\"color:#ef4444; font-size:0.75rem;\">PROMO</span>' : ''}</strong>
+                <span style="font-size: 0.8rem; color: var(--accent); font-weight: 700;">🪙 ${b.price_points} pts ${b.original_price_points ? '<s style=\"color:#9CA3AF;\">(' + b.original_price_points + ' pts)</s>' : ''} • ${b.cards_per_pack} cartes • 🎬 ${b.opening_animation || 'classique'}</span>
               </div>
             </div>
-            <span class="rarity-pill rarity-peu-commune">Actif</span>
+            <span class="rarity-pill rarity-peu-commune">${b.daily_purchase_limit > 0 ? b.daily_purchase_limit + '/j' : 'Illimité'}</span>
           </div>
         `).join('') || '<p style="color: var(--text-muted);">Aucun booster.</p>';
       } catch (err) {
@@ -902,6 +1001,9 @@
     async function createBooster(e) {
       e.preventDefault();
       try {
+        const origPrice = document.getElementById('boosterOriginalPrice').value;
+        const availUntil = document.getElementById('boosterAvailableUntil').value;
+
         await apiFetch('/api/admin/boosters', {
           method: 'POST',
           body: JSON.stringify({
@@ -911,6 +1013,10 @@
             price_points: Number(document.getElementById('boosterPrice').value),
             cards_per_pack: Number(document.getElementById('boosterCardsCount').value),
             collection_id: document.getElementById('boosterCollectionSelect').value || null,
+            original_price_points: origPrice ? Number(origPrice) : null,
+            opening_animation: document.getElementById('boosterAnimation').value,
+            daily_purchase_limit: Number(document.getElementById('boosterDailyLimit').value || 0),
+            available_until: availUntil || null,
           })
         });
         showToast('Nouveau Booster ajouté à la boutique !');
@@ -936,6 +1042,7 @@
                   <span class="rarity-pill rarity-rare">${q.category}</span>
                   <span class="rarity-pill rarity-commune">${q.difficulty}</span>
                   <span style="font-size: 0.75rem; color: var(--accent); font-weight: 700;">+${q.points_reward} pts</span>
+                  <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">⏱️ ${q.time_limit_seconds || 20}s</span>
                 </div>
                 <strong style="display: block; font-size: 0.9rem;">${q.prompt}</strong>
                 ${correct ? `<span style="font-size: 0.8rem; color: var(--success);">✓ ${correct.answer_text}</span>` : ''}
@@ -967,6 +1074,7 @@
             difficulty: document.getElementById('qDifficulty').value,
             points_reward: Number(document.getElementById('qPoints').value),
             explanation: document.getElementById('qExplanation').value,
+            time_limit_seconds: Number(document.getElementById('qTimeLimit').value || 20),
             answers,
           })
         });

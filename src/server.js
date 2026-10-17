@@ -414,7 +414,8 @@ app.get('/api/shop/boosters', async (req, res) => {
   try {
     const boosters = await db.query(
       `SELECT b.id, b.name, b.description, b.illustration_url, b.price_points,
-              b.cards_per_pack, b.collection_id, c.name as collection_name
+              b.cards_per_pack, b.collection_id, c.name as collection_name,
+              b.opening_animation, b.daily_purchase_limit, b.original_price_points, b.available_until
        FROM boosters b
        LEFT JOIN collections c ON c.id = b.collection_id
        WHERE b.is_active = 1`
@@ -1361,14 +1362,27 @@ app.get('/api/admin/collections', authenticateToken, requireRole(['administrateu
 
 app.post('/api/admin/collections', authenticateToken, requireRole(['administrateur']), async (req, res) => {
   try {
-    const { name, description, cover_image_url, banner_image_url, status, start_date, end_date } = req.body;
+    const { name, description, cover_image_url, banner_image_url, status, start_date, end_date, completion_reward_points, display_order, icon_symbol } = req.body;
     if (!name) return res.status(400).json({ error: 'Nom obligatoire' });
 
     const id = uuidv4();
     await db.run(
-      `INSERT INTO collections (id, name, description, cover_image_url, banner_image_url, status, start_date, end_date, published_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, CASE WHEN ? = 'publiee' THEN NOW() ELSE NULL END)`,
-      [id, name, description, cover_image_url, banner_image_url, status || 'brouillon', start_date || null, end_date || null, status]
+      `INSERT INTO collections (id, name, description, cover_image_url, banner_image_url, status, start_date, end_date, published_at, completion_reward_points, display_order, icon_symbol)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, CASE WHEN ? = 'publiee' THEN NOW() ELSE NULL END, ?, ?, ?)`,
+      [
+        id,
+        name,
+        description,
+        cover_image_url,
+        banner_image_url,
+        status || 'brouillon',
+        start_date || null,
+        end_date || null,
+        status,
+        Number(completion_reward_points || 100),
+        Number(display_order || 0),
+        icon_symbol || '🎴',
+      ]
     );
 
     await logAudit(req.user.id, 'CREATE_COLLECTION', 'collection', id, `Collection: ${name}`);
@@ -1390,15 +1404,31 @@ app.get('/api/admin/cards', authenticateToken, requireRole(['administrateur']), 
 
 app.post('/api/admin/cards', authenticateToken, requireRole(['administrateur']), async (req, res) => {
   try {
-    const { collection_id, name, description, main_image_url, alt_image_url, rarity, card_number, frame_style, visual_effects, availability, status } = req.body;
+    const {
+      collection_id,
+      name,
+      description,
+      main_image_url,
+      alt_image_url,
+      rarity,
+      card_number,
+      frame_style,
+      visual_effects,
+      availability,
+      status,
+      border_color,
+      special_finish,
+      is_secret,
+      is_hidden_rarity,
+    } = req.body;
     if (!collection_id || !name || !main_image_url) {
       return res.status(400).json({ error: 'collection_id, nom et illustration principale requis' });
     }
 
     const id = uuidv4();
     await db.run(
-      `INSERT INTO cards (id, collection_id, name, description, main_image_url, alt_image_url, rarity, card_number, frame_style, visual_effects, availability, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO cards (id, collection_id, name, description, main_image_url, alt_image_url, rarity, card_number, frame_style, visual_effects, availability, status, border_color, special_finish, is_secret, is_hidden_rarity)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         id,
         collection_id,
@@ -1412,19 +1442,36 @@ app.post('/api/admin/cards', authenticateToken, requireRole(['administrateur']),
         visual_effects || null,
         availability || 'permanente',
         status || 'brouillon',
+        border_color || null,
+        special_finish || 'standard',
+        is_secret ? 1 : 0,
+        is_hidden_rarity ? 1 : 0,
       ]
     );
 
     await logAudit(req.user.id, 'CREATE_CARD', 'card', id, `Carte: ${name} (${rarity})`);
     res.status(201).json({ message: 'Carte créée avec succès', id });
   } catch (err) {
+    console.error('Erreur création carte:', err);
     res.status(500).json({ error: 'Erreur création carte.' });
   }
 });
 
 app.post('/api/admin/boosters', authenticateToken, requireRole(['administrateur']), async (req, res) => {
   try {
-    const { name, description, illustration_url, price_points, cards_per_pack, collection_id, rarity_rates } = req.body;
+    const {
+      name,
+      description,
+      illustration_url,
+      price_points,
+      cards_per_pack,
+      collection_id,
+      rarity_rates,
+      opening_animation,
+      daily_purchase_limit,
+      original_price_points,
+      available_until,
+    } = req.body;
     if (!name || !price_points) {
       return res.status(400).json({ error: 'Nom et prix en points requis' });
     }
@@ -1432,8 +1479,8 @@ app.post('/api/admin/boosters', authenticateToken, requireRole(['administrateur'
     const boosterId = uuidv4();
     await db.transaction(async (tx) => {
       await tx.run(
-        `INSERT INTO boosters (id, name, description, illustration_url, price_points, cards_per_pack, collection_id, is_active)
-         VALUES (?, ?, ?, ?, ?, ?, ?, 1)`,
+        `INSERT INTO boosters (id, name, description, illustration_url, price_points, cards_per_pack, collection_id, is_active, opening_animation, daily_purchase_limit, original_price_points, available_until)
+         VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?)`,
         [
           boosterId,
           name,
@@ -1442,6 +1489,10 @@ app.post('/api/admin/boosters', authenticateToken, requireRole(['administrateur'
           Number(price_points),
           Number(cards_per_pack || 5),
           collection_id || null,
+          opening_animation || 'classique',
+          Number(daily_purchase_limit || 0),
+          original_price_points ? Number(original_price_points) : null,
+          available_until || null,
         ]
       );
 
@@ -1482,7 +1533,7 @@ app.get('/api/admin/questions', authenticateToken, requireRole(['administrateur'
 
 app.post('/api/admin/questions', authenticateToken, requireRole(['administrateur']), async (req, res) => {
   try {
-    const { prompt, explanation, difficulty, category, points_reward, answers } = req.body;
+    const { prompt, explanation, difficulty, category, points_reward, answers, time_limit_seconds } = req.body;
     if (!prompt || !difficulty || !category || !answers || answers.length < 2) {
       return res.status(400).json({ error: 'Énoncé, difficulté, catégorie et au moins 2 réponses requis' });
     }
@@ -1490,8 +1541,8 @@ app.post('/api/admin/questions', authenticateToken, requireRole(['administrateur
     const qid = uuidv4();
     await db.transaction(async (tx) => {
       await tx.run(
-        "INSERT INTO questions (id, prompt, explanation, difficulty, category, points_reward, status) VALUES (?, ?, ?, ?, ?, ?, 'publiee')",
-        [qid, prompt, explanation || null, difficulty, category, points_reward || 10]
+        "INSERT INTO questions (id, prompt, explanation, difficulty, category, points_reward, status, time_limit_seconds) VALUES (?, ?, ?, ?, ?, ?, 'publiee', ?)",
+        [qid, prompt, explanation || null, difficulty, category, points_reward || 10, Number(time_limit_seconds || 20)]
       );
       for (const a of answers) {
         await tx.run('INSERT INTO question_answers (id, question_id, answer_text, is_correct) VALUES (?, ?, ?, ?)', [
