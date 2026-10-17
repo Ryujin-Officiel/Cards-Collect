@@ -25,10 +25,19 @@ const JWT_SECRET = process.env.JWT_SECRET || 'SecretSuperSecurisePourCollectDeCa
 // Middlewares
 app.use(cors());
 app.use(express.json());
-app.use('/uploads', express.static(uploadsDir));
+const publicDir = path.join(__dirname, '..', 'public');
+app.use(express.static(publicDir));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(publicDir, 'admin.html'));
+});
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(publicDir, 'admin.html'));
 });
 
 // Multer Storage (§3.3, §7.3)

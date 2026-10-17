@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Collect de Cartes</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0B0E14;
+      --surface: #151922;
+      --surface-card: #1C2331;
+      --border: rgba(255, 255, 255, 0.08);
+      --accent: #E5A93C;
+      --accent-glow: rgba(229, 169, 60, 0.25);
+      --text: #F3F4F6;
+      --text-muted: #9CA3AF;
+      --primary: #4F46E5;
+      --primary-hover: #4338CA;
+      --danger: #EF4444;
+      --success: #10B981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    /* Sidebar */
+    aside {
+      width: 260px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .brand {
+      padding: 24px;
+      font-size: 1.1rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand-badge {
+      background: var(--accent);
+      color: #000;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 800;
+    }
+
+    nav {
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      font-weight: 600;
+      border-radius: 10px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s;
+    }
+
+    .nav-btn:hover {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+    }
+
+    .nav-btn.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .user-footer {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.85rem;
+    }
+
+    /* Main Content */
+    main {
+      flex: 1;
+      padding: 32px 40px;
+      overflow-y: auto;
+      max-width: 1200px;
+    }
+
+    header {
+      margin-bottom: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-top: 4px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    /* Cards & Layout */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Forms */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="password"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 11px 14px;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+    }
+
+    .btn:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    /* Items List */
+    .items-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 600px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+
+    .item-row {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .item-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .item-img {
+      width: 44px;
+      height: 58px;
+      object-fit: cover;
+      border-radius: 6px;
+      background: #000;
+      border: 1px solid var(--border);
+    }
+
+    .rarity-pill {
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .rarity-commune { background: rgba(156, 163, 175, 0.2); color: #9CA3AF; }
+    .rarity-peu-commune { background: rgba(16, 185, 129, 0.2); color: #10B981; }
+    .rarity-rare { background: rgba(59, 130, 246, 0.2); color: #3B82F6; }
+    .rarity-epique { background: rgba(168, 85, 247, 0.2); color: #A855F7; }
+    .rarity-legendaire { background: rgba(245, 158, 11, 0.2); color: #F59E0B; }
+
+    /* Answers builder */
+    .answer-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .answer-row input[type="radio"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    /* Modal / Auth overlay */
+    #authOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(11, 14, 20, 0.95);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .auth-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 14px 22px;
+      border-radius: 10px;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 2000;
+    }
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    .toast.success { border-color: var(--success); }
+    .toast.error { border-color: var(--danger); }
+  </style>
+</head>
+<body>
+
+  <!-- Auth Modal -->
+  <div id="authOverlay">
+    <div class="auth-box">
+      <div style="font-size: 2.2rem; margin-bottom: 12px;">🛡️</div>
+      <h2 style="font-size: 1.4rem; margin-bottom: 6px;">Connexion Administration</h2>
+      <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 24px;">
+        Accès réservé aux administrateurs de Collect de Cartes
+      </p>
+
+      <div class="form-group" style="text-align: left;">
+        <label>URL du Serveur (Vercel Cloud)</label>
+        <input type="text" id="apiEndpoint" value="https://cards-collect-ryujin-officiel.vercel.app">
+      </div>
+
+      <div class="form-group" style="text-align: left;">
+        <label>Email Administrateur</label>
+        <input type="text" id="adminEmail" value="admin@collection-cartes.local">
+      </div>
+
+      <div class="form-group" style="text-align: left;">
+        <label>Mot de passe</label>
+        <input type="password" id="adminPassword" value="AdminCartes2026!">
+      </div>
+
+      <button class="btn" onclick="loginAdmin()">Se Connecter au Cloud</button>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <aside>
+    <div class="brand">
+      <span>🎴 Collect Admin</span>
+      <span class="brand-badge">CLOUD</span>
+    </div>
+    <nav>
+      <button class="nav-btn active" onclick="switchTab('cards')">🃏 Cartes</button>
+      <button class="nav-btn" onclick="switchTab('boosters')">🎁 Packs & Boosters</button>
+      <button class="nav-btn" onclick="switchTab('quiz')">❓ Quiz & Questions</button>
+      <button class="nav-btn" onclick="switchTab('collections')">📚 Collections</button>
+    </nav>
+    <div class="user-footer">
+      <span style="color: var(--text-muted);" id="userDisplay">Non connecté</span>
+      <button onclick="logout()" style="background: none; border: none; color: var(--danger); cursor: pointer; font-size: 0.8rem; font-weight: 700;">Déconnexion</button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main>
+    <header>
+      <div>
+        <h1 id="pageTitle">Gestion des Cartes</h1>
+        <p class="subtitle" id="pageSubtitle">Ajoutez et configurez de nouvelles cartes à tirer dans les boosters</p>
+      </div>
+      <div class="status-badge">
+        <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--success);"></span>
+        Connecté à Neon PostgreSQL
+      </div>
+    </header>
+
+    <!-- SECTION 1: CARTES -->
+    <div id="tab-cards" class="tab-content">
+      <div class="grid-2">
+        <div class="card">
+          <h2 class="card-title">✨ Créer une Nouvelle Carte</h2>
+          <form id="cardForm" onsubmit="createCard(event)">
+            <div class="form-group">
+              <label>Collection parente</label>
+              <select id="cardCollectionSelect" required></select>
+            </div>
+            <div class="form-group">
+              <label>Nom de la carte</label>
+              <input type="text" id="cardName" placeholder="Ex: Phénix Céleste" required>
+            </div>
+            <div class="form-group">
+              <label>Description / Histoire</label>
+              <textarea id="cardDesc" rows="3" placeholder="Description de la carte..."></textarea>
+            </div>
+            <div class="form-group">
+              <label>URL de l'illustration principale</label>
+              <input type="text" id="cardImg" placeholder="https://..." value="https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=600" required>
+            </div>
+            <div class="grid-2" style="gap: 12px; margin-bottom: 16px;">
+              <div>
+                <label>Rareté</label>
+                <select id="cardRarity">
+                  <option value="commune">Commune</option>
+                  <option value="peu commune">Peu commune</option>
+                  <option value="rare">Rare</option>
+                  <option value="epique">Épique</option>
+                  <option value="legendaire">Légendaire</option>
+                </select>
+              </div>
+              <div>
+                <label>Numéro dans collection</label>
+                <input type="number" id="cardNumber" value="1" min="1">
+              </div>
+            </div>
+            <div class="grid-2" style="gap: 12px; margin-bottom: 20px;">
+              <div>
+                <label>Effet visuel</label>
+                <select id="cardEffect">
+                  <option value="aucun">Aucun</option>
+                  <option value="holographique">Holographique</option>
+                  <option value="brillante">Brillante</option>
+                  <option value="doree">Dorée</option>
+                </select>
+              </div>
+              <div>
+                <label>Statut</label>
+                <select id="cardStatus">
+                  <option value="publiee">Publiée (Disponible)</option>
+                  <option value="brouillon">Brouillon</option>
+                </select>
+              </div>
+            </div>
+            <button type="submit" class="btn">Publier la Carte dans la Base</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">📋 Cartes Existantes (<span id="cardsCount">0</span>)</h2>
+          <div class="items-list" id="cardsList">
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Chargement des cartes...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: BOOSTERS -->
+    <div id="tab-boosters" class="tab-content" style="display: none;">
+      <div class="grid-2">
+        <div class="card">
+          <h2 class="card-title">🎁 Ajouter un Pack de Cartes</h2>
+          <form id="boosterForm" onsubmit="createBooster(event)">
+            <div class="form-group">
+              <label>Nom du Booster</label>
+              <input type="text" id="boosterName" placeholder="Ex: Booster Cosmique" required>
+            </div>
+            <div class="form-group">
+              <label>Description</label>
+              <textarea id="boosterDesc" rows="2" placeholder="Description du pack..."></textarea>
+            </div>
+            <div class="form-group">
+              <label>URL de l'illustration du pack</label>
+              <input type="text" id="boosterImg" value="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400" required>
+            </div>
+            <div class="grid-2" style="gap: 12px; margin-bottom: 16px;">
+              <div>
+                <label>Prix en points</label>
+                <input type="number" id="boosterPrice" value="150" min="10" required>
+              </div>
+              <div>
+                <label>Cartes par pack</label>
+                <input type="number" id="boosterCardsCount" value="5" min="1" max="15" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Collection dédiée (optionnel)</label>
+              <select id="boosterCollectionSelect">
+                <option value="">Toutes les collections (Tirage global)</option>
+              </select>
+            </div>
+            <button type="submit" class="btn">Ajouter le Pack à la Boutique</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">🛍️ Packs en Boutique (<span id="boostersCount">0</span>)</h2>
+          <div class="items-list" id="boostersList">
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Chargement des boosters...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: QUIZ & QUESTIONS -->
+    <div id="tab-quiz" class="tab-content" style="display: none;">
+      <div class="grid-2">
+        <div class="card">
+          <h2 class="card-title">💡 Créer une Question de Quiz</h2>
+          <form id="quizForm" onsubmit="createQuestion(event)">
+            <div class="form-group">
+              <label>Énoncé de la question</label>
+              <textarea id="qPrompt" rows="2" placeholder="Ex: Quel élément compose principalement le Soleil ?" required></textarea>
+            </div>
+            <div class="grid-2" style="gap: 12px; margin-bottom: 16px;">
+              <div>
+                <label>Thème / Catégorie</label>
+                <input type="text" id="qCategory" value="Culture Générale" required>
+              </div>
+              <div>
+                <label>Difficulté</label>
+                <select id="qDifficulty">
+                  <option value="facile">Facile</option>
+                  <option value="moyen">Moyen</option>
+                  <option value="difficile">Difficile</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Points récompensés</label>
+              <input type="number" id="qPoints" value="15" min="5" required>
+            </div>
+
+            <label style="margin-bottom: 8px;">Propositions (Cochez la bonne réponse) :</label>
+            <div class="answer-row">
+              <input type="radio" name="correctAnswer" value="0" checked>
+              <input type="text" id="ans0" placeholder="Réponse 1 (Bonne réponse)" required>
+            </div>
+            <div class="answer-row">
+              <input type="radio" name="correctAnswer" value="1">
+              <input type="text" id="ans1" placeholder="Réponse 2 (Fausse)" required>
+            </div>
+            <div class="answer-row">
+              <input type="radio" name="correctAnswer" value="2">
+              <input type="text" id="ans2" placeholder="Réponse 3 (Fausse)" required>
+            </div>
+            <div class="answer-row" style="margin-bottom: 20px;">
+              <input type="radio" name="correctAnswer" value="3">
+              <input type="text" id="ans3" placeholder="Réponse 4 (Fausse)" required>
+            </div>
+
+            <div class="form-group">
+              <label>Explication affichée après réponse</label>
+              <input type="text" id="qExplanation" placeholder="Ex: Le Soleil est principalement composé d'hydrogène.">
+            </div>
+
+            <button type="submit" class="btn">Enregistrer la Question</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">📚 Questions Disponibles (<span id="questionsCount">0</span>)</h2>
+          <div class="items-list" id="questionsList">
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Chargement des questions...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 4: COLLECTIONS -->
+    <div id="tab-collections" class="tab-content" style="display: none;">
+      <div class="grid-2">
+        <div class="card">
+          <h2 class="card-title">📁 Nouvelle Collection</h2>
+          <form id="collectionForm" onsubmit="createCollection(event)">
+            <div class="form-group">
+              <label>Nom de la Collection</label>
+              <input type="text" id="colName" placeholder="Ex: Guerriers Mythiques" required>
+            </div>
+            <div class="form-group">
+              <label>Description</label>
+              <textarea id="colDesc" rows="3" placeholder="Présentation de la collection..."></textarea>
+            </div>
+            <div class="form-group">
+              <label>Image de couverture</label>
+              <input type="text" id="colCover" value="https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=600" required>
+            </div>
+            <div class="form-group">
+              <label>Bannière (optionnel)</label>
+              <input type="text" id="colBanner" placeholder="https://...">
+            </div>
+            <div class="form-group" style="margin-bottom: 20px;">
+              <label>Statut</label>
+              <select id="colStatus">
+                <option value="publiee">Publiée</option>
+                <option value="brouillon">Brouillon</option>
+              </select>
+            </div>
+            <button type="submit" class="btn">Créer la Collection</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">📚 Collections Actuelles (<span id="collectionsCount">0</span>)</h2>
+          <div class="items-list" id="collectionsList">
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Chargement des collections...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast" class="toast">Action effectuée avec succès</div>
+
+  <script>
+    let token = localStorage.getItem('admin_token') || null;
+    let API_URL = localStorage.getItem('api_url') || 'https://cards-collect-ryujin-officiel.vercel.app';
+    let collectionsCache = [];
+
+    window.onload = () => {
+      document.getElementById('apiEndpoint').value = API_URL;
+      if (token) {
+        document.getElementById('authOverlay').style.display = 'none';
+        document.getElementById('userDisplay').innerText = 'Admin connecté';
+        loadAllData();
+      }
+    };
+
+    function showToast(msg, isError = false) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.className = 'toast show ' + (isError ? 'error' : 'success');
+      setTimeout(() => toast.className = 'toast', 3500);
+    }
+
+    async function loginAdmin() {
+      const endpoint = document.getElementById('apiEndpoint').value.trim();
+      const email = document.getElementById('adminEmail').value.trim();
+      const password = document.getElementById('adminPassword').value.trim();
+
+      API_URL = endpoint.endsWith('/') ? endpoint.slice(0, -1) : endpoint;
+      localStorage.setItem('api_url', API_URL);
+
+      try {
+        const res = await fetch(`${API_URL}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || 'Erreur connexion');
+        if (!data.roles || !data.roles.includes('administrateur')) {
+          throw new Error('Ce compte ne possède pas les droits administrateur');
+        }
+
+        token = data.token;
+        localStorage.setItem('admin_token', token);
+        document.getElementById('authOverlay').style.display = 'none';
+        document.getElementById('userDisplay').innerText = data.user.username;
+        showToast('Connexion réussie !');
+        loadAllData();
+      } catch (err) {
+        alert('Erreur de connexion : ' + err.message);
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('admin_token');
+      token = null;
+      document.getElementById('authOverlay').style.display = 'flex';
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+
+      event.target.classList.add('active');
+      document.getElementById(`tab-${tab}`).style.display = 'block';
+
+      const titles = {
+        cards: ['Gestion des Cartes', 'Ajoutez et configurez de nouvelles cartes à tirer dans les boosters'],
+        boosters: ['Gestion des Packs & Boosters', 'Créez de nouveaux packs achetable par les joueurs avec leurs points'],
+        quiz: ['Gestion des Quiz & Questions', 'Ajoutez des questions pour permettre aux joueurs de gagner des points'],
+        collections: ['Gestion des Collections', 'Créez des thèmes et séries de cartes']
+      };
+      document.getElementById('pageTitle').innerText = titles[tab][0];
+      document.getElementById('pageSubtitle').innerText = titles[tab][1];
+    }
+
+    async function apiFetch(path, options = {}) {
+      options.headers = options.headers || {};
+      options.headers['Content-Type'] = 'application/json';
+      if (token) options.headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(`${API_URL}${path}`, options);
+      if (res.status === 401 || res.status === 403) {
+        logout();
+        throw new Error('Session expirée');
+      }
+      return res.json();
+    }
+
+    async function loadAllData() {
+      loadCollections();
+      loadCards();
+      loadBoosters();
+      loadQuestions();
+    }
+
+    // Collections
+    async function loadCollections() {
+      try {
+        const list = await apiFetch('/api/admin/collections');
+        collectionsCache = list;
+        document.getElementById('collectionsCount').innerText = list.length;
+
+        const selectCard = document.getElementById('cardCollectionSelect');
+        const selectBooster = document.getElementById('boosterCollectionSelect');
+        selectCard.innerHTML = '';
+        selectBooster.innerHTML = '<option value="">Toutes les collections (Tirage global)</option>';
+
+        list.forEach(c => {
+          selectCard.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+          selectBooster.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+        });
+
+        const container = document.getElementById('collectionsList');
+        container.innerHTML = list.map(c => `
+          <div class="item-row">
+            <div class="item-info">
+              <img src="${c.cover_image_url}" class="item-img">
+              <div>
+                <strong style="display: block;">${c.name}</strong>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">${c.description || 'Sans description'}</span>
+              </div>
+            </div>
+            <span class="rarity-pill rarity-${c.status === 'publiee' ? 'peu-commune' : 'commune'}">${c.status}</span>
+          </div>
+        `).join('') || '<p style="color: var(--text-muted);">Aucune collection.</p>';
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function createCollection(e) {
+      e.preventDefault();
+      try {
+        await apiFetch('/api/admin/collections', {
+          method: 'POST',
+          body: JSON.stringify({
+            name: document.getElementById('colName').value,
+            description: document.getElementById('colDesc').value,
+            cover_image_url: document.getElementById('colCover').value,
+            banner_image_url: document.getElementById('colBanner').value,
+            status: document.getElementById('colStatus').value,
+          })
+        });
+        showToast('Collection créée avec succès !');
+        document.getElementById('collectionForm').reset();
+        loadCollections();
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    }
+
+    // Cards
+    async function loadCards() {
+      try {
+        const list = await apiFetch('/api/admin/cards');
+        document.getElementById('cardsCount').innerText = list.length;
+        const container = document.getElementById('cardsList');
+        container.innerHTML = list.map(c => `
+          <div class="item-row">
+            <div class="item-info">
+              <img src="${c.main_image_url}" class="item-img" onerror="this.src='https://placehold.co/44x58/222/fff?text=?'">
+              <div>
+                <strong style="display: block;">${c.name}</strong>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">${c.collection_name || 'Collection'} • #${c.card_number}</span>
+              </div>
+            </div>
+            <span class="rarity-pill rarity-${c.rarity.replace(' ', '-')}">${c.rarity}</span>
+          </div>
+        `).join('') || '<p style="color: var(--text-muted);">Aucune carte créée.</p>';
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function createCard(e) {
+      e.preventDefault();
+      try {
+        await apiFetch('/api/admin/cards', {
+          method: 'POST',
+          body: JSON.stringify({
+            collection_id: document.getElementById('cardCollectionSelect').value,
+            name: document.getElementById('cardName').value,
+            description: document.getElementById('cardDesc').value,
+            main_image_url: document.getElementById('cardImg').value,
+            rarity: document.getElementById('cardRarity').value,
+            card_number: Number(document.getElementById('cardNumber').value),
+            visual_effects: document.getElementById('cardEffect').value,
+            status: document.getElementById('cardStatus').value,
+          })
+        });
+        showToast('Carte créée et enregistrée dans le Cloud !');
+        document.getElementById('cardName').value = '';
+        document.getElementById('cardDesc').value = '';
+        loadCards();
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    }
+
+    // Boosters
+    async function loadBoosters() {
+      try {
+        const list = await apiFetch('/api/shop/boosters');
+        document.getElementById('boostersCount').innerText = list.length;
+        const container = document.getElementById('boostersList');
+        container.innerHTML = list.map(b => `
+          <div class="item-row">
+            <div class="item-info">
+              <img src="${b.illustration_url}" class="item-img">
+              <div>
+                <strong style="display: block;">${b.name}</strong>
+                <span style="font-size: 0.8rem; color: var(--accent); font-weight: 700;">🪙 ${b.price_points} pts • ${b.cards_per_pack} cartes</span>
+              </div>
+            </div>
+            <span class="rarity-pill rarity-peu-commune">Actif</span>
+          </div>
+        `).join('') || '<p style="color: var(--text-muted);">Aucun booster.</p>';
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function createBooster(e) {
+      e.preventDefault();
+      try {
+        await apiFetch('/api/admin/boosters', {
+          method: 'POST',
+          body: JSON.stringify({
+            name: document.getElementById('boosterName').value,
+            description: document.getElementById('boosterDesc').value,
+            illustration_url: document.getElementById('boosterImg').value,
+            price_points: Number(document.getElementById('boosterPrice').value),
+            cards_per_pack: Number(document.getElementById('boosterCardsCount').value),
+            collection_id: document.getElementById('boosterCollectionSelect').value || null,
+          })
+        });
+        showToast('Nouveau Booster ajouté à la boutique !');
+        document.getElementById('boosterForm').reset();
+        loadBoosters();
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    }
+
+    // Quiz Questions
+    async function loadQuestions() {
+      try {
+        const list = await apiFetch('/api/admin/questions');
+        document.getElementById('questionsCount').innerText = list.length;
+        const container = document.getElementById('questionsList');
+        container.innerHTML = list.map(q => {
+          const correct = q.answers?.find(a => a.is_correct === 1 || a.is_correct === true);
+          return `
+            <div class="item-row">
+              <div style="flex: 1;">
+                <div style="display: flex; gap: 8px; margin-bottom: 4px;">
+                  <span class="rarity-pill rarity-rare">${q.category}</span>
+                  <span class="rarity-pill rarity-commune">${q.difficulty}</span>
+                  <span style="font-size: 0.75rem; color: var(--accent); font-weight: 700;">+${q.points_reward} pts</span>
+                </div>
+                <strong style="display: block; font-size: 0.9rem;">${q.prompt}</strong>
+                ${correct ? `<span style="font-size: 0.8rem; color: var(--success);">✓ ${correct.answer_text}</span>` : ''}
+              </div>
+            </div>
+          `;
+        }).join('') || '<p style="color: var(--text-muted);">Aucune question.</p>';
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function createQuestion(e) {
+      e.preventDefault();
+      const correctIdx = document.querySelector('input[name="correctAnswer"]:checked').value;
+      const answers = [
+        { answer_text: document.getElementById('ans0').value, is_correct: correctIdx === '0' },
+        { answer_text: document.getElementById('ans1').value, is_correct: correctIdx === '1' },
+        { answer_text: document.getElementById('ans2').value, is_correct: correctIdx === '2' },
+        { answer_text: document.getElementById('ans3').value, is_correct: correctIdx === '3' },
+      ];
+
+      try {
+        await apiFetch('/api/admin/questions', {
+          method: 'POST',
+          body: JSON.stringify({
+            prompt: document.getElementById('qPrompt').value,
+            category: document.getElementById('qCategory').value,
+            difficulty: document.getElementById('qDifficulty').value,
+            points_reward: Number(document.getElementById('qPoints').value),
+            explanation: document.getElementById('qExplanation').value,
+            answers,
+          })
+        });
+        showToast('Question enregistrée avec succès !');
+        document.getElementById('quizForm').reset();
+        loadQuestions();
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    }
+  </script>
+</body>
+</html>
