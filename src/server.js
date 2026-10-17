@@ -1413,6 +1413,54 @@ app.post('/api/admin/cards', authenticateToken, requireRole(['administrateur']),
   }
 });
 
+app.post('/api/admin/boosters', authenticateToken, requireRole(['administrateur']), async (req, res) => {
+  try {
+    const { name, description, illustration_url, price_points, cards_per_pack, collection_id, rarity_rates } = req.body;
+    if (!name || !price_points) {
+      return res.status(400).json({ error: 'Nom et prix en points requis' });
+    }
+
+    const boosterId = uuidv4();
+    await db.transaction(async (tx) => {
+      await tx.run(
+        `INSERT INTO boosters (id, name, description, illustration_url, price_points, cards_per_pack, collection_id, is_active)
+         VALUES (?, ?, ?, ?, ?, ?, ?, 1)`,
+        [
+          boosterId,
+          name,
+          description || '',
+          illustration_url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300',
+          Number(price_points),
+          Number(cards_per_pack || 5),
+          collection_id || null,
+        ]
+      );
+
+      const defaultRates = [
+        { rarity: 'commune', rate_percentage: 60 },
+        { rarity: 'peu commune', rate_percentage: 25 },
+        { rarity: 'rare', rate_percentage: 10 },
+        { rarity: 'epique', rate_percentage: 4 },
+        { rarity: 'legendaire', rate_percentage: 1 },
+      ];
+      const ratesToApply = rarity_rates && rarity_rates.length > 0 ? rarity_rates : defaultRates;
+
+      for (const r of ratesToApply) {
+        await tx.run(
+          'INSERT INTO booster_rarity_rates (id, booster_id, rarity, rate_percentage) VALUES (?, ?, ?, ?)',
+          [uuidv4(), boosterId, r.rarity, Number(r.rate_percentage)]
+        );
+      }
+    });
+
+    await logAudit(req.user.id, 'CREATE_BOOSTER', 'booster', boosterId, `Pack créé: ${name} (${price_points} pts)`);
+    res.status(201).json({ message: 'Booster créé avec succès', id: boosterId });
+  } catch (err) {
+    console.error('Erreur création booster:', err);
+    res.status(500).json({ error: 'Erreur création booster.' });
+  }
+});
+
 app.get('/api/admin/questions', authenticateToken, requireRole(['administrateur']), async (req, res) => {
   const questions = await db.query('SELECT * FROM questions ORDER BY created_at DESC');
   const result = [];
